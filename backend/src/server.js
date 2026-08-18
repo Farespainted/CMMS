@@ -24,6 +24,14 @@ async function autoBootstrapIfEmpty() {
   console.log(`Demo external-system API key: ${demoApiKey}`);
 }
 
+// One-time import of a customer's real data (see seed/importRealData.js for details and safety
+// notes). Only runs when IMPORT_REAL_DATA=true is set, and refuses to run twice.
+async function importRealDataIfRequested() {
+  if (process.env.IMPORT_REAL_DATA !== 'true') return;
+  const { importRealData } = require('../seed/importRealData');
+  await importRealData();
+}
+
 async function start() {
   try {
     await sequelize.authenticate();
@@ -33,6 +41,7 @@ async function start() {
     console.log(`Database connected (${process.env.DB_DIALECT || 'sqlite'})`);
 
     await autoBootstrapIfEmpty();
+    await importRealDataIfRequested();
 
     startPmScheduler();
 
